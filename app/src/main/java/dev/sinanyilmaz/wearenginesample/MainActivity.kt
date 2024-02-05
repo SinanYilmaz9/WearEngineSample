@@ -10,6 +10,8 @@ import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.View
 import android.widget.RadioButton
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.huawei.hmf.tasks.OnSuccessListener
 import com.huawei.wearengine.HiWear
@@ -65,10 +67,7 @@ class MainActivity : AppCompatActivity() {
 
     private var monitorListener = MonitorListener { resultCode, monitorItem, monitorData ->
             if (monitorData != null && monitorItem != null) {
-                printOperationResult(
-                    ("MonitorListener result is: resultCode:" + resultCode + "string data[" + monitorData.asString()
-                            + MONITOR_INT_DATA + monitorData.asInt() + MONITOR_BOOLEAN_DATA + monitorData.asBool()) + " ]"
-                )
+                printOperationResult(("MonitorListener result is: resultCode:" + resultCode + "string data[" + monitorData.asString() + MONITOR_INT_DATA + monitorData.asInt() + MONITOR_BOOLEAN_DATA + monitorData.asBool()) + " ]")
             }
             else printOperationResult("monitorItem is null or monitorData is null!")
     }
@@ -133,7 +132,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setPeerPkgName(editable: Editable) {
         peerPkgName = editable.toString().trim { it <= ' ' }
-        p2pClient!!.setPeerPkgName(peerPkgName)
+        p2pClient?.setPeerPkgName(peerPkgName)
 
         // You need to set the fingerprint information of the target application.
         p2pClient?.setPeerFingerPrint("")
@@ -172,16 +171,11 @@ class MainActivity : AppCompatActivity() {
         if (!checkDevice() || !checkPackageName()) {
             return
         }
-        p2pClient!!.ping(selectedDevice) { result ->
-            printOperationResult(
-                ((getTime + STRING_PING) + selectedDevice!!.name + DEVICE_NAME_OF)
-                        + peerPkgName + STRING_RESULT + result
-            )
-        }
-            .addOnSuccessListener { printOperationResult(STRING_PING + selectedDevice!!.name + DEVICE_NAME_OF + peerPkgName + SUCCESS) }
-            .addOnFailureListener { printOperationResult(STRING_PING + selectedDevice!!.name + DEVICE_NAME_OF + peerPkgName + FAILURE) }
+        p2pClient?.ping(selectedDevice) { result ->
+            printOperationResult(((getTime + STRING_PING) + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + STRING_RESULT + result)
+        }?.addOnSuccessListener { printOperationResult(STRING_PING + selectedDevice?.name + DEVICE_NAME_OF + peerPkgName + SUCCESS) }
+         ?.addOnFailureListener { printOperationResult(STRING_PING + selectedDevice?.name + DEVICE_NAME_OF + peerPkgName + FAILURE) }
     }
-
 
     /**
      * Obtain the paired device list.
@@ -227,21 +221,21 @@ class MainActivity : AppCompatActivity() {
         val sendCallback: SendCallback = object : SendCallback {
             override fun onSendResult(resultCode: Int) {
                 printOperationResult(
-                    ((getTime + SEND_MESSAGE_TO) + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + STRING_RESULT + resultCode
+                    ((getTime + SEND_MESSAGE_TO) + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + STRING_RESULT + resultCode
                 )
             }
 
             override fun onSendProgress(progress: Long) {
                 printOperationResult(
-                    (((getTime + SEND_MESSAGE_TO) + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + " progress:" + progress)
+                    (((getTime + SEND_MESSAGE_TO) + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + " progress:" + progress)
                 )
             }
         }
         p2pClient?.send(selectedDevice, sendMessage, sendCallback)
             ?.addOnSuccessListener {
-                printOperationResult((SEND_MESSAGE_TO + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + SUCCESS)
+                printOperationResult((SEND_MESSAGE_TO + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + SUCCESS)
             }?.addOnFailureListener {
-                printOperationResult((SEND_MESSAGE_TO + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + FAILURE)
+                printOperationResult((SEND_MESSAGE_TO + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + FAILURE)
             }
     }
 
@@ -257,8 +251,9 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "*/*"
             intent.addCategory(Intent.CATEGORY_OPENABLE)
-            startActivityForResult(intent, SELECT_FILE_CODE)
-        } catch (e: ActivityNotFoundException) {
+            selectFileLauncher.launch(intent)
+        }
+         catch (e: ActivityNotFoundException) {
             binding.logOutputTextView.append("ActivityNotFoundException" + System.lineSeparator())
         }
     }
@@ -273,41 +268,43 @@ class MainActivity : AppCompatActivity() {
         val builder = Message.Builder()
         builder.setPayload(sendFile)
         val fileMessage = builder.build()
-        p2pClient!!.send(selectedDevice, fileMessage, object : SendCallback {
+
+        p2pClient?.send(selectedDevice, fileMessage, object : SendCallback {
             override fun onSendResult(resultCode: Int) {
                 printOperationResult(
-                    ((getTime + SEND_MESSAGE_TO) + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + STRING_RESULT + resultCode
+                    ((getTime + SEND_MESSAGE_TO) + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + STRING_RESULT + resultCode
                 )
             }
 
             override fun onSendProgress(progress: Long) {
                 printOperationResult(
-                    (((getTime + SEND_MESSAGE_TO) + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + " progress:" + progress)
+                    (((getTime + SEND_MESSAGE_TO) + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + " progress:" + progress)
                 )
             }
-        }).addOnSuccessListener {
+        })?.addOnSuccessListener {
             printOperationResult(
-                (SEND_MESSAGE_TO + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + SUCCESS
+                (SEND_MESSAGE_TO + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + SUCCESS
             )
-        }.addOnFailureListener {
+        }?.addOnFailureListener {
             printOperationResult(
-                (SEND_MESSAGE_TO + selectedDevice!!.name + DEVICE_NAME_OF) + peerPkgName + FAILURE
+                (SEND_MESSAGE_TO + selectedDevice?.name + DEVICE_NAME_OF) + peerPkgName + FAILURE
             )
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SELECT_FILE_CODE && resultCode == RESULT_OK) {
-            if (data == null) {
-                Log.e(TAG, "Invalid file data")
-                return
+    private var selectFileLauncher: ActivityResultLauncher<Intent> = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data: Intent? = result.data
+                if (data == null) {
+                    Log.e(TAG, "Invalid file data")
+                    return@registerForActivityResult
+                }
+
+                val selectFileUri = data.data
+                val selectFilePath = SelectFileManager.getFilePath(this, selectFileUri)
+                sendFile(selectFilePath)
             }
-            val selectFileUri = data.data
-            val selectFilePath = SelectFileManager.getFilePath(this, selectFileUri)
-            sendFile(selectFilePath)
         }
-    }
 
     /**
      * Register a specified app on a specified device.
@@ -324,7 +321,8 @@ class MainActivity : AppCompatActivity() {
 
         p2pClient?.registerReceiver(selectedDevice, receiver)?.addOnSuccessListener {
             printOperationResult("register receiver listener$SUCCESS")
-        }?.addOnFailureListener { printOperationResult("register receiver listener$FAILURE") }
+        }
+        ?.addOnFailureListener { printOperationResult("register receiver listener$FAILURE") }
     }
 
     /**
@@ -355,7 +353,7 @@ class MainActivity : AppCompatActivity() {
         }
         monitorListener = MonitorListener { _, _, monitorData ->
                 val result = ("ReceiveMonitorMessage is: string data[" + monitorData.asString() + MONITOR_INT_DATA
-                            + monitorData.asInt() + MONITOR_BOOLEAN_DATA + monitorData.asBool()) + "]"
+                        + monitorData.asInt() + MONITOR_BOOLEAN_DATA + monitorData.asBool()) + "]"
                 printOperationResult(result)
             }
 
@@ -390,18 +388,22 @@ class MainActivity : AppCompatActivity() {
      * @param devices Device list
      */
     private fun updateDeviceList(devices: List<Device?>?) {
-        for (device in devices!!) {
-            printOperationResult("device Name: " + device?.name)
-            printOperationResult("device connect status:" + device?.isConnected)
-            if (deviceMap.containsKey(device?.uuid)) {
-                continue
+        devices?.let {
+            for (device in devices) {
+                printOperationResult("device Name: " + device?.name)
+                printOperationResult("device connect status:" + device?.isConnected)
+
+                if (deviceMap.containsKey(device?.uuid)) continue
+
+                device?.let {
+                    deviceList.add(it)
+                    deviceMap[device.uuid] = device
+                    val deviceRadioButton = RadioButton(this)
+                    setRadioButton(deviceRadioButton, device.name, index)
+                    binding.deviceRadioGroup.addView(deviceRadioButton)
+                }
+                index++
             }
-            deviceList.add(device!!)
-            deviceMap[device.uuid] = device
-            val deviceRadioButton = RadioButton(this)
-            setRadioButton(deviceRadioButton, device.name, index)
-            binding.deviceRadioGroup.addView(deviceRadioButton)
-            index++
         }
     }
 
@@ -451,7 +453,7 @@ class MainActivity : AppCompatActivity() {
      * @return true:not connected,false:connected
      */
     private fun isDeviceNotConnected(): Boolean {
-        val isConnected = selectedDevice != null && selectedDevice!!.isConnected
+        val isConnected = selectedDevice != null && selectedDevice?.isConnected == true
         return !isConnected
     }
 

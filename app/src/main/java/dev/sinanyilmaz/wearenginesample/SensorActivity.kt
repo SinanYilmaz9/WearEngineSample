@@ -28,12 +28,13 @@ class SensorActivity : AppCompatActivity() {
 
         mSensorClient = HiWear.getSensorClient(this)
         mCurrentReadDevice = intent.getParcelableExtra("currentDevice");
+
         if (mCurrentReadDevice == null) {
             printOperationResult("mCurrentReadDevice is null.");
             return
         }
-        if (mCurrentReadDevice?.name != null) binding.textViewDeviceName.text =
-            mCurrentReadDevice?.name
+
+        if (mCurrentReadDevice?.name != null) binding.textViewDeviceName.text = mCurrentReadDevice?.name
 
         addListener()
     }
@@ -73,7 +74,8 @@ class SensorActivity : AppCompatActivity() {
                     }
                 }
                 updateSensorListBox()
-            })?.addOnFailureListener { printOperationResult("getSensorList Exception.") }
+            })
+            ?.addOnFailureListener { printOperationResult("getSensorList Exception.") }
     }
 
     /**
@@ -81,11 +83,11 @@ class SensorActivity : AppCompatActivity() {
      */
     private fun updateSensorListBox() {
         binding.sensorRadioGroup.removeAllViews()
+
         for (index in 0 until mSensorList.size) {
             val sensor = mSensorList[index]
-            if (index == 0) {
-                mSensor = sensor
-            }
+            if (index == 0) mSensor = sensor
+
             printOperationResult(sensor.name)
             val deviceRadioButton = RadioButton(this)
             setRadioButton(deviceRadioButton, sensor.name, index)
@@ -109,16 +111,17 @@ class SensorActivity : AppCompatActivity() {
      */
     fun asyncReadSensorData(view: View?) {
         if (checkParams()) {
-            printOperationResult(
-                "asyncReadSensorData: The device or sensor object is empty, or the device is disconnected."
-            )
+            printOperationResult("asyncReadSensorData: The device or sensor object is empty, or the device is disconnected.")
             return
         }
+
         val sensorReadCallback = SensorReadCallback { errorCode, dataResult ->
                 printOperationResult("asyncReadSensorData errorCode:$errorCode")
-                if (dataResult != null && dataResult.sensor != null) {
+
+            if (dataResult != null && dataResult.sensor != null) {
                     printOperationResult("sensor name:" + dataResult.sensor.name)
                     var data: FloatArray?
+
                     when (dataResult.sensor.type) {
                         Sensor.TYPE_PPG -> {
                             val dataResults = dataResult.asList()
@@ -140,9 +143,10 @@ class SensorActivity : AppCompatActivity() {
                     }
                 }
             }
+
         mSensorClient?.asyncRead(mCurrentReadDevice, mSensor, sensorReadCallback)
-            ?.addOnSuccessListener { printOperationResult("asyncRead task submission success sensor name is:" + mSensor!!.name) }
-            ?.addOnFailureListener { printOperationResult("asyncRead task error. sensor name is:" + mSensor!!.name) }
+            ?.addOnSuccessListener { printOperationResult("asyncRead task submission success sensor name is:" + mSensor?.name) }
+            ?.addOnFailureListener { printOperationResult("asyncRead task error. sensor name is:" + mSensor?.name) }
     }
 
 
@@ -156,16 +160,16 @@ class SensorActivity : AppCompatActivity() {
             printOperationResult("stopReadSensorData: The device or sensor object is empty, or the device is disconnected.")
             return
         }
-        val sensorStopCallback =
-            SensorStopCallback { errorCode ->
+
+        val sensorStopCallback = SensorStopCallback { errorCode ->
                 val result = "stopAsyncRead result:$errorCode"
                 printOperationResult(result)
             }
-        mSensorClient!!.stopAsyncRead(mCurrentReadDevice, mSensor, sensorStopCallback)
-            .addOnSuccessListener { printOperationResult("stopAsyncRead task submission success sensor name is:" + mSensor!!.name) }
-            .addOnFailureListener { printOperationResult("stopAsyncRead task error. sensor name is:" + mSensor!!.name) }
-    }
 
+        mSensorClient?.stopAsyncRead(mCurrentReadDevice, mSensor, sensorStopCallback)
+            ?.addOnSuccessListener { printOperationResult("stopAsyncRead task submission success sensor name is:" + mSensor?.name) }
+            ?.addOnFailureListener { printOperationResult("stopAsyncRead task error. sensor name is:" + mSensor?.name) }
+    }
 
     /**
      * Check whether there are available devices or sensors for connection.
@@ -173,7 +177,7 @@ class SensorActivity : AppCompatActivity() {
      * @return true:Not available，false:available
      */
     private fun checkParams(): Boolean {
-        return mSensor == null || mCurrentReadDevice == null || !mCurrentReadDevice!!.isConnected
+        return mSensor == null || mCurrentReadDevice == null || !mCurrentReadDevice?.isConnected!!
     }
 
     companion object {
